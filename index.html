@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ewe — an algorithmic departure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="ambient ambient-1"></div>
+<div class="ambient ambient-2"></div>
+<div class="ambient ambient-3"></div>
+
+<div class="app-wrapper">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="logo-wrap">
+      <div class="logo">e<span>w</span>e</div>
+      <div class="logo-sub">an algorithmic departure</div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">navigate</div>
+      <div class="nav-item active" onclick="switchView('pasture', this)">
+        <span class="nav-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18 Q6 10 12 14 Q18 18 21 6"/><path d="M3 22h18"/></svg>
+        </span> the pasture
+      </div>
+      <div class="nav-item" onclick="switchView('drift', this)">
+        <span class="nav-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12 Q8 6 12 12 Q16 18 20 12"/></svg>
+        </span> drift
+      </div>
+      <div class="nav-item" onclick="switchView('herd', this)">
+        <span class="nav-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="3"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><circle cx="17" cy="7" r="2"/><path d="M21 21v-1.5a3 3 0 0 0-2-2.83"/></svg>
+        </span> your herd
+      </div>
+      <div class="nav-item" onclick="switchView('shelf', this)">
+        <span class="nav-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        </span> shelf
+      </div>
+      <div class="nav-item" onclick="switchView('catalog', this)">
+        <span class="nav-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </span> catalog
+      </div>
+    </div>
+
+    <div class="nav-section" style="border-top: 1px solid var(--border); padding-top: 20px;">
+      <div class="nav-label">your shelf</div>
+    </div>
+    <div class="shelf-items">
+      <!-- mixtapes -->
+      <div class="shelf-item">
+        <div class="shelf-dot" style="background: linear-gradient(135deg, #e8c47a, #e87a6a);"></div>
+        <div class="shelf-info">
+          <div class="shelf-name">late night driving</div>
+          <div class="shelf-meta">24 tracks</div>
+        </div>
+        <span class="shelf-type mixtape">mixtape</span>
+      </div>
+      <div class="shelf-item">
+        <div class="shelf-dot" style="background: linear-gradient(135deg, #b8a8e8, #6ae8d4);"></div>
+        <div class="shelf-info">
+          <div class="shelf-name">overheard at 2am</div>
+          <div class="shelf-meta">12 tracks</div>
+        </div>
+        <span class="shelf-type mixtape">mixtape</span>
+      </div>
+      <!-- albums -->
+      <div class="shelf-item">
+        <div class="shelf-dot" style="background: linear-gradient(135deg, #2a1f3d, #1a2f3d); border-radius: 3px;"></div>
+        <div class="shelf-info">
+          <div class="shelf-name">Good News for People Who Love Bad News</div>
+          <div class="shelf-meta">Modest Mouse</div>
+        </div>
+        <span class="shelf-type album">album</span>
+      </div>
+      <div class="shelf-item">
+        <div class="shelf-dot" style="background: linear-gradient(135deg, #1a3d2a, #1a1f3d); border-radius: 3px;"></div>
+        <div class="shelf-info">
+          <div class="shelf-name">Bookends</div>
+          <div class="shelf-meta">Simon & Garfunkel</div>
+        </div>
+        <span class="shelf-type album">album</span>
+      </div>
+      <!-- songs -->
+      <div class="shelf-item">
+        <div class="shelf-dot" style="background: linear-gradient(135deg, #6ae8d4, #6ae87a); border-radius: 50%;"></div>
+        <div class="shelf-info">
+          <div class="shelf-name">Float On</div>
+          <div class="shelf-meta">Modest Mouse</div>
+        </div>
+        <span class="shelf-type song">song</span>
+      </div>
+      <div class="shelf-item">
+        <div class="shelf-dot" style="background: linear-gradient(135deg, #e87a6a, #b8a8e8); border-radius: 50%;"></div>
+        <div class="shelf-info">
+          <div class="shelf-name">Please Please Please</div>
+          <div class="shelf-meta">Sabrina Carpenter</div>
+        </div>
+        <span class="shelf-type song">song</span>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="avatar">E</div>
+        <div>
+          <div class="user-name">echowanderer</div>
+          <div class="user-handle">47 in herd</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN CONTENT ── -->
+  <main class="main" id="mainContent">
+    <div class="topbar">
+      <div class="search-wrap">
+        <span class="search-icon">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </span>
+        <input class="search-input" type="text" placeholder="search by feeling, phrase, or song...">
+      </div>
+      <div class="topbar-actions">
+        <button class="topbar-btn">overheard</button>
+        <button class="topbar-btn primary">+ add to shelf</button>
+      </div>
+    </div>
+
+    <div class="content" id="viewContent">
+
+      <!-- PASTURE VIEW (default) -->
+      <div id="view-pasture">
+
+        <div class="pasture-intro fade-up fade-up-1">
+          <div class="pasture-eyebrow">the pasture</div>
+          <div class="pasture-headline">What are you carrying<br>into this moment?</div>
+          <div class="pasture-sub">These words live here because real people used them to describe real songs. Choose what resonates — not what an algorithm decided you are today.</div>
+        </div>
+
+        <div class="section-header fade-up fade-up-2">
+          <div class="section-title">I'm feeling <em>something like...</em></div>
+          <div class="section-link" onclick="shuffleMoods()">shuffle →</div>
+        </div>
+
+        <div class="mood-cloud fade-up fade-up-2" id="moodCloud">
+          <div class="mood-tag size-lg" onclick="selectMood(this)">untethered</div>
+          <div class="mood-tag" onclick="selectMood(this)">searching</div>
+          <div class="mood-tag size-sm" onclick="selectMood(this)">hollow</div>
+          <div class="mood-tag size-lg" onclick="selectMood(this)">electric</div>
+          <div class="mood-tag" onclick="selectMood(this)">nostalgic</div>
+          <div class="mood-tag size-sm" onclick="selectMood(this)">tender</div>
+          <div class="mood-tag" onclick="selectMood(this)">restless</div>
+          <div class="mood-tag size-lg" onclick="selectMood(this)">seen</div>
+          <div class="mood-tag size-sm" onclick="selectMood(this)">charged</div>
+          <div class="mood-tag" onclick="selectMood(this)">soft</div>
+          <div class="mood-tag size-lg" onclick="selectMood(this)">aching</div>
+          <div class="mood-tag size-sm" onclick="selectMood(this)">loud inside</div>
+          <div class="mood-tag" onclick="selectMood(this)">wistful</div>
+          <div class="mood-tag" onclick="selectMood(this)">like beginning</div>
+          <div class="mood-tag size-lg" onclick="selectMood(this)">unraveling</div>
+          <div class="mood-tag size-sm" onclick="selectMood(this)">still</div>
+          <div class="mood-tag" onclick="selectMood(this)">in between</div>
+          <div class="mood-tag" onclick="selectMood(this)">grateful somehow</div>
+          <div class="mood-tag size-sm" onclick="selectMood(this)">defiant</div>
+          <div class="mood-tag size-lg" onclick="selectMood(this)">homesick</div>
+        </div>
+
+        <!-- BRANCH / DRIFT THREAD -->
+        <div class="section-header fade-up fade-up-3">
+          <div class="section-title">A <em>drift</em> nearby</div>
+          <div class="section-link">follow thread →</div>
+        </div>
+
+        <div class="branch-section fade-up fade-up-3">
+          <div class="branch-header">
+            <div class="branch-seed">
+              <div class="branch-seed-label">this thread started when</div>
+              <div class="branch-seed-text">"sounds like deciding things will probably be alright"</div>
+            </div>
+            <div class="branch-count">23 connected</div>
+          </div>
+          <div class="branch-thread">
+            <div class="branch-node">
+              <div class="branch-dot" style="background: linear-gradient(135deg, #2a1f3d, #1a2f3d);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(184,168,232,0.7)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+              </div>
+              <div class="branch-node-card">
+                <div class="branch-node-top">
+                  <div class="branch-node-song">Float On <span>· Modest Mouse</span></div>
+                  <div class="playing-bar"><span></span><span></span><span></span></div>
+                </div>
+                <div class="branch-node-comment">"This is where the drift started. Someone said it sounded like deciding to be okay with things."</div>
+                <div class="branch-node-footer">
+                  <span class="felt-btn active" onclick="toggleFelt(this)">♥ 41 felt this</span>
+                  <span class="felt-btn" onclick="addToShelf(this)">+ shelf</span>
+                  <span class="felt-btn" onclick="passToBranch(this)">↗ pass on</span>
+                </div>
+              </div>
+            </div>
+            <div class="branch-node">
+              <div class="branch-dot" style="background: linear-gradient(135deg, #1a2f2a, #1a1f3d);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(106,232,212,0.7)" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+              </div>
+              <div class="branch-node-card">
+                <div class="branch-node-top">
+                  <div class="branch-node-song">Whenever You See Fit <span>· Modest Mouse</span></div>
+                </div>
+                <div class="branch-node-comment">"Quiet and a little hopeful. Like the moment after you stop fighting something."</div>
+                <div class="branch-node-footer">
+                  <span class="felt-btn" onclick="toggleFelt(this)">♥ 28 felt this</span>
+                  <span class="felt-btn" onclick="addToShelf(this)">+ shelf</span>
+                  <span class="felt-btn" onclick="passToBranch(this)">↗ pass on</span>
+                </div>
+              </div>
+            </div>
+            <div class="branch-node">
+              <div class="branch-dot" style="background: linear-gradient(135deg, #2f1a1a, #2f2a1a);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(232,122,106,0.7)" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              </div>
+              <div class="branch-node-card">
+                <div class="branch-node-top">
+                  <div class="branch-node-song">Please Please Please <span>· Sabrina Carpenter</span></div>
+                </div>
+                <div class="branch-node-comment">"Someone wrote: this one sounds like wanting something so badly you forget to be cool about it."</div>
+                <div class="branch-node-footer">
+                  <span class="felt-btn" onclick="toggleFelt(this)">♥ 19 felt this</span>
+                  <span class="felt-btn" onclick="addToShelf(this)">+ shelf</span>
+                  <span class="felt-btn" onclick="passToBranch(this)">↗ pass on</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COMMUNITY PHRASES -->
+        <div class="section-header fade-up fade-up-4">
+          <div class="section-title">What the <em>herd</em> is saying</div>
+          <div class="section-link">drift in →</div>
+        </div>
+
+        <div class="drift-grid fade-up fade-up-4">
+          <div class="drift-card" style="--accent-color: rgba(184,168,232,0.08);" onclick="followDrift(this)">
+            <div class="drift-quote">"float on came on shuffle during the worst month of my life and something shifted"</div>
+            <div class="drift-meta">
+              <div class="drift-felt"><strong>34</strong> felt this</div>
+              <div class="drift-user">
+                <div class="mini-avatar" style="background: linear-gradient(135deg, #b8a8e8, #6ae8d4); border-radius: 50%;"></div>
+                quietroads
+              </div>
+            </div>
+          </div>
+          <div class="drift-card" style="--accent-color: rgba(232,122,106,0.08);" onclick="followDrift(this)">
+            <div class="drift-quote">"sabrina carpenter makes songs for people who are done pretending they don't know what they want"</div>
+            <div class="drift-meta">
+              <div class="drift-felt"><strong>61</strong> felt this</div>
+              <div class="drift-user">
+                <div class="mini-avatar" style="background: linear-gradient(135deg, #e87a6a, #e8c47a); border-radius: 50%;"></div>
+                glassjar
+              </div>
+            </div>
+          </div>
+          <div class="drift-card" style="--accent-color: rgba(106,232,212,0.08);" onclick="followDrift(this)">
+            <div class="drift-quote">"modest mouse sounds like what it feels like to be alive and not entirely sure how you feel about that"</div>
+            <div class="drift-meta">
+              <div class="drift-felt"><strong>88</strong> felt this</div>
+              <div class="drift-user">
+                <div class="mini-avatar" style="background: linear-gradient(135deg, #6ae8d4, #6ae87a); border-radius: 50%;"></div>
+                barefoot_static
+              </div>
+            </div>
+          </div>
+          <div class="drift-card" style="--accent-color: rgba(232,196,122,0.08);" onclick="followDrift(this)">
+            <div class="drift-quote">"the kind of song you discover alone and feel like no one else knows"</div>
+            <div class="drift-meta">
+              <div class="drift-felt"><strong>47</strong> felt this</div>
+              <div class="drift-user">
+                <div class="mini-avatar" style="background: linear-gradient(135deg, #e8c47a, #b8a8e8); border-radius: 50%;"></div>
+                lowvolume
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- OVERHEARD TRACKS -->
+        <div class="section-header fade-up fade-up-5">
+          <div class="section-title"><em>Overheard</em> in your herd</div>
+          <div class="section-link">see all →</div>
+        </div>
+
+        <div class="track-list fade-up fade-up-5">
+          <div class="track-row playing" onclick="playTrack(this)">
+            <div class="track-num">
+              <div class="playing-bar"><span></span><span></span><span></span></div>
+            </div>
+            <div class="track-art" style="background: linear-gradient(135deg,#2a1f3d,#1a2f3d);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(184,168,232,0.5)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <div class="track-info">
+              <div class="track-name">Float On</div>
+              <div class="track-artist">Modest Mouse · Good News for People Who Love Bad News</div>
+            </div>
+            <div class="track-tag" style="color: var(--lilac); border-color: rgba(184,168,232,0.3);">untethered</div>
+            <div class="track-duration">5:37</div>
+          </div>
+          <div class="track-row" onclick="playTrack(this)">
+            <div class="track-num">2</div>
+            <div class="track-art" style="background: linear-gradient(135deg,#1f2a1f,#1a3d1a);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(138,232,122,0.5)" stroke-width="1.5" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            </div>
+            <div class="track-info">
+              <div class="track-name">Missed the Boat</div>
+              <div class="track-artist">Modest Mouse · We Were Dead Before the Ship Even Sank</div>
+            </div>
+            <div class="track-tag" style="color: var(--gold); border-color: var(--gold-dim);">aching</div>
+            <div class="track-duration">4:27</div>
+          </div>
+          <div class="track-row" onclick="playTrack(this)">
+            <div class="track-num">3</div>
+            <div class="track-art" style="background: linear-gradient(135deg,#1a2f3d,#0f1f2f);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(106,232,212,0.5)" stroke-width="1.5" stroke-linecap="round"><path d="M3 18 Q6 10 12 14 Q18 18 21 6"/></svg>
+            </div>
+            <div class="track-info">
+              <div class="track-name">Taking up Space</div>
+              <div class="track-artist">Mustard Service · Zest Pop</div>
+            </div>
+            <div class="track-tag" style="color: var(--teal); border-color: rgba(106,232,212,0.3);">still</div>
+            <div class="track-duration">7:01</div>
+          </div>
+          <div class="track-row" onclick="playTrack(this)">
+            <div class="track-num">4</div>
+            <div class="track-art" style="background: linear-gradient(135deg,#2f1a1a,#1a1520);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(232,122,106,0.5)" stroke-width="1.5" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </div>
+            <div class="track-info">
+              <div class="track-name">Please Please Please</div>
+              <div class="track-artist">Sabrina Carpenter · Short n' Sweet</div>
+            </div>
+            <div class="track-tag" style="color: var(--coral); border-color: rgba(232,122,106,0.3);">tender</div>
+            <div class="track-duration">3:50</div>
+          </div>
+          <div class="track-row" onclick="playTrack(this)">
+            <div class="track-num">5</div>
+            <div class="track-art" style="background: linear-gradient(135deg,#1a2a1f,#2a3d1a);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(138,232,122,0.5)" stroke-width="1.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <div class="track-info">
+              <div class="track-name">Espresso</div>
+              <div class="track-artist">Sabrina Carpenter · Short n' Sweet</div>
+            </div>
+            <div class="track-tag" style="color: var(--green); border-color: rgba(138,232,122,0.3);">electric</div>
+            <div class="track-duration">5:22</div>
+          </div>
+        </div>
+
+      </div>
+      <!-- end pasture view -->
+
+      <!-- ── SHELF VIEW ── -->
+      <div id="view-shelf" style="display:none;">
+
+        <div class="pasture-intro fade-up fade-up-1" style="background: linear-gradient(135deg, rgba(232,196,122,0.07), rgba(184,168,232,0.05));">
+          <div class="pasture-eyebrow" style="color: var(--gold);">your shelf</div>
+          <div class="pasture-headline">Everything you've<br><em>held onto.</em></div>
+          <div class="pasture-sub">Albums, songs, and mixtapes you've saved. The shelf is yours — curated, not computed.</div>
+        </div>
+
+        <!-- Shelf tabs -->
+        <div class="shelf-tabs fade-up fade-up-2">
+          <div class="shelf-tab active albums" onclick="switchShelfTab('albums', this)">albums</div>
+          <div class="shelf-tab songs" onclick="switchShelfTab('songs', this)">songs</div>
+          <div class="shelf-tab mixtapes" onclick="switchShelfTab('mixtapes', this)">mixtapes</div>
+        </div>
+
+        <!-- Albums section -->
+        <div id="shelf-albums">
+          <div class="section-header fade-up fade-up-3">
+            <div class="section-title"><em>Albums</em> on your shelf</div>
+            <div class="section-link">8 saved →</div>
+          </div>
+          <div class="album-grid fade-up fade-up-3">
+            <div class="album-card" onclick="playTrackFrom(0)">
+              <div class="album-art" style="background: linear-gradient(135deg,#2a1f3d,#1a2f3d);">
+                <div class="album-art-inner">
+                  <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="rgba(184,168,232,0.4)" stroke-width="1.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="9"/></svg>
+                </div>
+                <div class="album-overlay">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="none"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                </div>
+              </div>
+              <div class="album-title">Good News for People Who Love Bad News</div>
+              <div class="album-artist">Modest Mouse</div>
+              <div class="album-felt">"the sound of deciding to be okay anyway"</div>
+            </div>
+            <div class="album-card">
+              <div class="album-art" style="background: linear-gradient(135deg,#2f1a1a,#1a1520);">
+                <div class="album-art-inner">
+                  <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="rgba(232,122,106,0.4)" stroke-width="1.2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </div>
+                <div class="album-overlay">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="none"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                </div>
+              </div>
+              <div class="album-title">Short n' Sweet</div>
+              <div class="album-artist">Sabrina Carpenter</div>
+              <div class="album-felt">"knowing exactly what you want and saying so"</div>
+            </div>
+            <div class="album-card">
+              <div class="album-art" style="background: linear-gradient(135deg,#1a2f3d,#0f1a2f);">
+                <div class="album-art-inner">
+                  <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="rgba(106,232,212,0.4)" stroke-width="1.2" stroke-linecap="round"><path d="M3 18 Q6 10 12 14 Q18 18 21 6"/><path d="M3 22h18"/></svg>
+                </div>
+                <div class="album-overlay">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="none"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                </div>
+              </div>
+              <div class="album-title">We Were Dead Before the Ship Even Sank</div>
+              <div class="album-artist">Modest Mouse</div>
+              <div class="album-felt">"epic and a little doomed but still moving"</div>
+            </div>
+            <div class="album-card">
+              <div class="album-art" style="background: linear-gradient(135deg,#1f2a1a,#2a3a1a);">
+                <div class="album-art-inner">
+                  <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="rgba(138,232,122,0.4)" stroke-width="1.2" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                </div>
+                <div class="album-overlay">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="none"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                </div>
+              </div>
+              <div class="album-title">emails i can't send</div>
+              <div class="album-artist">Sabrina Carpenter</div>
+              <div class="album-felt">"things you felt but never said out loud"</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Songs section -->
+        <div id="shelf-songs" style="display:none;">
+          <div class="section-header fade-up fade-up-3">
+            <div class="section-title"><em>Songs</em> on your shelf</div>
+            <div class="section-link">16 saved →</div>
+          </div>
+          <div class="songs-list fade-up fade-up-3">
+            <div class="song-saved-row" onclick="playTrackFrom(0)">
+              <div class="song-saved-art" style="background: linear-gradient(135deg,#2a1f3d,#1a2f3d);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(184,168,232,0.5)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+              </div>
+              <div class="song-saved-info">
+                <div class="song-saved-name">Float On</div>
+                <div class="song-saved-artist">Modest Mouse · Good News for People Who Love Bad News</div>
+                <div class="song-saved-felt">"sounds like deciding things will probably be alright"</div>
+              </div>
+              <div class="song-saved-tag" style="color:var(--lilac); border-color:rgba(184,168,232,0.3);">untethered</div>
+              <div class="song-saved-dur">5:37</div>
+            </div>
+            <div class="song-saved-row" onclick="playTrackFrom(3)">
+              <div class="song-saved-art" style="background: linear-gradient(135deg,#2f1a1a,#1a1520);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(232,122,106,0.5)" stroke-width="1.5" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              </div>
+              <div class="song-saved-info">
+                <div class="song-saved-name">Please Please Please</div>
+                <div class="song-saved-artist">Sabrina Carpenter · Short n' Sweet</div>
+                <div class="song-saved-felt">"wanting someone to just get it right this time"</div>
+              </div>
+              <div class="song-saved-tag" style="color:var(--coral); border-color:rgba(232,122,106,0.3);">tender</div>
+              <div class="song-saved-dur">3:50</div>
+            </div>
+            <div class="song-saved-row" onclick="playTrackFrom(2)">
+              <div class="song-saved-art" style="background: linear-gradient(135deg,#1a2f3d,#0f1f2f);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(106,232,212,0.5)" stroke-width="1.5" stroke-linecap="round"><path d="M3 18 Q6 10 12 14 Q18 18 21 6"/></svg>
+              </div>
+              <div class="song-saved-info">
+                <div class="song-saved-name">Missed the Boat</div>
+                <div class="song-saved-artist">Modest Mouse · We Were Dead Before the Ship Even Sank</div>
+                <div class="song-saved-felt">"realizing something too late but making peace with it"</div>
+              </div>
+              <div class="song-saved-tag" style="color:var(--teal); border-color:rgba(106,232,212,0.3);">still</div>
+              <div class="song-saved-dur">7:01</div>
+            </div>
+            <div class="song-saved-row" onclick="playTrackFrom(4)">
+              <div class="song-saved-art" style="background: linear-gradient(135deg,#1a2a1f,#2a3d1a);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(138,232,122,0.5)" stroke-width="1.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              </div>
+              <div class="song-saved-info">
+                <div class="song-saved-name">Espresso</div>
+                <div class="song-saved-artist">Sabrina Carpenter · Short n' Sweet</div>
+                <div class="song-saved-felt">"confident and a little dangerous and fully aware of it"</div>
+              </div>
+              <div class="song-saved-tag" style="color:var(--green); border-color:rgba(138,232,122,0.3);">electric</div>
+              <div class="song-saved-dur">5:22</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mixtapes section -->
+        <div id="shelf-mixtapes" style="display:none;">
+          <div class="section-header fade-up fade-up-3">
+            <div class="section-title">Your <em>mixtapes</em></div>
+            <div class="section-link">+ make one →</div>
+          </div>
+          <div class="mixtape-grid fade-up fade-up-3">
+            <div class="mixtape-card" style="--tape-color: var(--gold);">
+              <svg class="mixtape-icon" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><path d="M10 12h4"/></svg>
+              <div class="mixtape-name">late night driving</div>
+              <div class="mixtape-meta">24 tracks · you made this</div>
+              <div class="mixtape-phrase">"for the hours between midnight and meaning"</div>
+            </div>
+            <div class="mixtape-card" style="--tape-color: var(--lilac);">
+              <svg class="mixtape-icon" viewBox="0 0 24 24" fill="none" stroke="var(--lilac)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><path d="M10 12h4"/></svg>
+              <div class="mixtape-name">overheard at 2am</div>
+              <div class="mixtape-meta">12 tracks · from the herd</div>
+              <div class="mixtape-phrase">"things people passed on that landed"</div>
+            </div>
+            <div class="mixtape-card" style="--tape-color: var(--teal);">
+              <svg class="mixtape-icon" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><path d="M10 12h4"/></svg>
+              <div class="mixtape-name">restless sunday</div>
+              <div class="mixtape-meta">31 tracks · you made this</div>
+              <div class="mixtape-phrase">"the specific texture of almost but not"</div>
+            </div>
+            <div class="mixtape-card" style="--tape-color: var(--coral);">
+              <svg class="mixtape-icon" viewBox="0 0 24 24" fill="none" stroke="var(--coral)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><path d="M10 12h4"/></svg>
+              <div class="mixtape-name">the hollow ones</div>
+              <div class="mixtape-meta">9 tracks · you made this</div>
+              <div class="mixtape-phrase">"songs for when language fails"</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- end shelf view -->
+
+    </div>
+  </main>
+
+  <!-- ── PLAYER ── -->
+  <footer class="player">
+    <div class="player-left">
+      <div class="now-art playing" id="nowArt"></div>
+      <div class="now-info">
+        <div class="now-title" id="nowTitle">Float On</div>
+        <div class="now-artist" id="nowArtist">Modest Mouse</div>
+        <div class="now-felt-wrap">
+          <div class="now-felt yours" id="nowFelt">"sounds like the last hour before everything changed"</div>
+        </div>
+      </div>
+      <button class="heart-btn active" onclick="this.classList.toggle('active')">
+        <svg width="18" height="18" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </button>
+    </div>
+
+    <div class="player-center">
+      <div class="player-controls">
+        <button class="icon-btn" title="shuffle" onclick="toggleShuffle(this)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+        </button>
+        <button class="icon-btn" onclick="prevTrack()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+        </button>
+        <button class="play-btn" id="playBtn" onclick="togglePlay()">
+          <svg id="playIcon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+          <svg id="pauseIcon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="display:none"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+        </button>
+        <button class="icon-btn" onclick="nextTrack()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+        </button>
+        <button class="icon-btn" title="repeat" onclick="toggleRepeat(this)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        </button>
+      </div>
+      <div class="progress-wrap">
+        <span class="time" id="currentTime">2:06</span>
+        <div class="progress-bar" onclick="seekTrack(event)">
+          <div class="progress-fill" id="progressFill"></div>
+          <div class="progress-thumb"></div>
+        </div>
+        <span class="time right" id="totalTime">5:37</span>
+      </div>
+    </div>
+
+    <div class="player-right">
+      <div class="vol-wrap">
+        <button class="icon-btn" style="padding:2px;" onclick="toggleMute(this)">
+          <svg id="volIconHigh" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+          <svg id="volIconLow" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+          <svg id="volIconOff" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+        </button>
+        <div class="vol-bar" onclick="setVolume(event)">
+          <div class="vol-fill" id="volFill"></div>
+        </div>
+      </div>
+      <button class="icon-btn queue-icon" title="queue">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span style="font-size:10px; font-family:'DM Mono',monospace; letter-spacing:1px; color:var(--muted);">queue</span>
+      </button>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  let isPlaying = true;
+  let progress = 37;
+
+  // Progress ticker
+  setInterval(() => {
+    if (isPlaying) {
+      progress += 0.02;
+      if (progress > 100) progress = 0;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.querySelector('.progress-thumb').style.right = (100 - progress - 0.5) + '%';
+    }
+  }, 200);
+
+  function togglePlay() {
+    isPlaying = !isPlaying;
+    document.getElementById('playIcon').style.display  = isPlaying ? 'none' : 'block';
+    document.getElementById('pauseIcon').style.display = isPlaying ? 'block' : 'none';
+    document.getElementById('nowArt').classList.toggle('playing', isPlaying);
+    document.querySelectorAll('.playing-bar span').forEach(s => {
+      s.style.animationPlayState = isPlaying ? 'running' : 'paused';
+    });
+  }
+  // Start in playing state — show pause icon initially
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('playIcon').style.display  = 'none';
+    document.getElementById('pauseIcon').style.display = 'block';
+  });
+
+  function seekTrack(e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    progress = ((e.clientX - rect.left) / rect.width) * 100;
+    document.getElementById('progressFill').style.width = progress + '%';
+  }
+
+  let currentVol = 70;
+  let isMuted = false;
+
+  function updateVolIcon() {
+    document.getElementById('volIconHigh').style.display = (!isMuted && currentVol >= 50) ? 'block' : 'none';
+    document.getElementById('volIconLow').style.display  = (!isMuted && currentVol < 50)  ? 'block' : 'none';
+    document.getElementById('volIconOff').style.display  = isMuted                         ? 'block' : 'none';
+  }
+
+  function setVolume(e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    currentVol = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    document.getElementById('volFill').style.width = currentVol + '%';
+    if (currentVol === 0) { isMuted = true; } else { isMuted = false; }
+    const btn = e.currentTarget.previousElementSibling;
+    btn.classList.toggle('active', isMuted);
+    updateVolIcon();
+  }
+
+  function toggleMute(btn) {
+    isMuted = !isMuted;
+    btn.classList.toggle('active', isMuted);
+    document.getElementById('volFill').style.width = isMuted ? '0%' : currentVol + '%';
+    if (isMuted) {
+      updateVolIcon();
+    } else {
+      setTimeout(updateVolIcon, 200);
+    }
+  }
+
+  function toggleShuffle(btn) { btn.style.color = ''; btn.classList.toggle('active'); }
+  function toggleRepeat(btn)  { btn.style.color = ''; btn.classList.toggle('active'); }
+
+  const tracks = [
+    {
+      title: 'Float On', artist: 'Modest Mouse',
+      gradient: 'linear-gradient(135deg,#1f2a3d,#2a1f3d)',
+      felts: [
+        { text: '"sounds like deciding things will probably be alright"', mine: true },
+        { text: '"the specific relief of lowering your expectations in a good way"', mine: false },
+        { text: '"driving nowhere in particular and feeling fine about it"', mine: false },
+        { text: '"optimism that earned itself"', mine: false },
+      ]
+    },
+    {
+      title: 'Missed the Boat', artist: 'Modest Mouse',
+      gradient: 'linear-gradient(135deg,#1f2a1f,#2a3a1f)',
+      felts: [
+        { text: '"realizing something too late but making peace with it"', mine: true },
+        { text: '"the specific sadness of almost"', mine: false },
+        { text: '"i played this until the almost stopped stinging"', mine: false },
+      ]
+    },
+    {
+      title: 'Taking up Space', artist: 'Mustard Service',
+      gradient: 'linear-gradient(135deg,#1a2f3d,#0f1f2f)',
+      felts: [
+        { text: '"sitting with someone in the quiet before something changes"', mine: true },
+        { text: '"the tenderness of being known by someone"', mine: false },
+        { text: '"love that doesn\'t need to announce itself"', mine: false },
+      ]
+    },
+    {
+      title: 'Please Please Please', artist: 'Sabrina Carpenter',
+      gradient: 'linear-gradient(135deg,#3d1f2a,#2a1520)',
+      felts: [
+        { text: '"wanting someone to just get it right this time"', mine: true },
+        { text: '"hope and irritation at exactly the same time"', mine: false },
+        { text: '"being charmed by someone you know you shouldn\'t be"', mine: false },
+      ]
+    },
+    {
+      title: 'Espresso', artist: 'Sabrina Carpenter',
+      gradient: 'linear-gradient(135deg,#2a1f1a,#3d2a1f)',
+      felts: [
+        { text: '"confident and a little dangerous and fully aware of it"', mine: true },
+        { text: '"the walk you do when you know you look good"', mine: false },
+        { text: '"leaving first on purpose"', mine: false },
+      ]
+    },
+  ];
+  let currentTrack = 0;
+  let feltIndex = 0;
+  let feltTimer = null;
+
+  function startFeltCycle(trackIdx) {
+    clearInterval(feltTimer);
+    feltIndex = 0;
+    renderFelt(trackIdx, feltIndex, false);
+    feltTimer = setInterval(() => {
+      feltIndex = (feltIndex + 1) % tracks[trackIdx].felts.length;
+      cycleFelt(trackIdx, feltIndex);
+    }, 6500);
+  }
+
+  function renderFelt(trackIdx, idx, animate) {
+    const wrap = document.querySelector('.now-felt-wrap');
+    const existing = document.getElementById('nowFelt');
+    const felt = tracks[trackIdx].felts[idx];
+    if (existing) existing.remove();
+    const el = document.createElement('div');
+    el.className = 'now-felt ' + (felt.mine ? 'yours' : 'theirs');
+    if (animate) el.classList.add('entering');
+    el.id = 'nowFelt';
+    el.textContent = felt.text;
+    wrap.appendChild(el);
+    if (animate) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => { el.classList.remove('entering'); });
+      });
+    }
+  }
+
+  function cycleFelt(trackIdx, idx) {
+    const existing = document.getElementById('nowFelt');
+    if (existing) {
+      existing.classList.add('leaving');
+      setTimeout(() => renderFelt(trackIdx, idx, true), 500);
+    } else {
+      renderFelt(trackIdx, idx, true);
+    }
+  }
+
+  function playTrack(row) {
+    document.querySelectorAll('.track-row').forEach(r => r.classList.remove('playing'));
+    row.classList.add('playing');
+    const idx = Array.from(document.querySelectorAll('.track-row')).indexOf(row);
+    if (idx >= 0 && idx < tracks.length) { currentTrack = idx; updateNowPlaying(); }
+    isPlaying = true;
+    document.getElementById('playIcon').style.display  = 'none';
+    document.getElementById('pauseIcon').style.display = 'block';
+    document.getElementById('nowArt').classList.add('playing');
+    progress = 0;
+  }
+
+  function playTrackFrom(idx) {
+    currentTrack = idx;
+    updateNowPlaying();
+    isPlaying = true;
+    document.getElementById('playIcon').style.display  = 'none';
+    document.getElementById('pauseIcon').style.display = 'block';
+    document.getElementById('nowArt').classList.add('playing');
+    progress = 0;
+  }
+
+  function nextTrack() { currentTrack = (currentTrack + 1) % tracks.length; updateNowPlaying(); progress = 0; }
+  function prevTrack() { currentTrack = (currentTrack - 1 + tracks.length) % tracks.length; updateNowPlaying(); progress = 0; }
+
+  function updateNowPlaying() {
+    const t = tracks[currentTrack];
+    document.getElementById('nowTitle').textContent  = t.title;
+    document.getElementById('nowArtist').textContent = t.artist;
+    document.getElementById('nowArt').style.background = t.gradient;
+    document.querySelectorAll('.track-row').forEach((r, i) => r.classList.toggle('playing', i === currentTrack));
+    startFeltCycle(currentTrack);
+  }
+
+  // Kick off felt cycle on load
+  startFeltCycle(0);
+
+  function selectMood(tag) {
+    document.querySelectorAll('.mood-tag').forEach(t => t.classList.remove('active'));
+    tag.classList.add('active');
+  }
+
+  function shuffleMoods() {
+    const cloud = document.getElementById('moodCloud');
+    const tags  = Array.from(cloud.children);
+    tags.sort(() => Math.random() - 0.5);
+    tags.forEach(t => cloud.appendChild(t));
+  }
+
+  function toggleFelt(btn) {
+    btn.classList.toggle('active');
+    const num = parseInt(btn.textContent.match(/\d+/)[0]);
+    btn.textContent = '♥ ' + (btn.classList.contains('active') ? num + 1 : num - 1) + ' felt this';
+  }
+
+  function addToShelf(btn) { btn.textContent = '✓ shelved'; btn.style.color = 'var(--green)'; }
+  function passToBranch(btn) { btn.textContent = '↗ passed'; btn.style.color = 'var(--teal)'; }
+  function followDrift(card) {
+    card.style.borderColor = 'rgba(232,196,122,0.4)';
+    card.style.background  = 'rgba(232,196,122,0.06)';
+  }
+
+  // View switcher
+  const views = ['pasture', 'shelf'];
+  function switchView(view, el) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    if (el) el.classList.add('active');
+    // Show/hide views
+    document.getElementById('view-pasture').style.display = view === 'pasture' ? '' : 'none';
+    const shelfEl = document.getElementById('view-shelf');
+    if (shelfEl) shelfEl.style.display = view === 'shelf' ? '' : 'none';
+  }
+
+  // Shelf tab switcher
+  function switchShelfTab(tab, el) {
+    document.querySelectorAll('.shelf-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    el.classList.add(tab);
+    document.getElementById('shelf-albums').style.display   = tab === 'albums'   ? '' : 'none';
+    document.getElementById('shelf-songs').style.display    = tab === 'songs'    ? '' : 'none';
+    document.getElementById('shelf-mixtapes').style.display = tab === 'mixtapes' ? '' : 'none';
+  }
+</script>
+
+</body>
+</html>
