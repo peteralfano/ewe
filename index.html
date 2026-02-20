@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ewe — an algorithmic departure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+–black: #0a0a0a;
+–deep: #0f0d12;
+–warm-dark: #1a1520;
+–card: #161220;
+–card-hover: #1e1830;
+–border: rgba(255,255,255,0.07);
+–border-warm: rgba(255,200,120,0.15);
+–cream: #f0e8d8;
+–muted: #8a7f96;
+–gold: #e8c47a;
+–gold-dim: rgba(232,196,122,0.4);
+–coral: #e87a6a;
+–teal: #6ae8d4;
+–lilac: #b8a8e8;
+–green: #8ae87a;
+–player-h: 80px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+background: var(–deep);
+color: var(–cream);
+font-family: ‘DM Mono’, monospace;
+min-height: 100vh;
+overflow-x: hidden;
+cursor: default;
+}
+
+/* Grain overlay */
+body::before {
+content: ‘’;
+position: fixed;
+inset: 0;
+background-image: url(“data:image/svg+xml,%3Csvg viewBox=‘0 0 256 256’ xmlns=‘http://www.w3.org/2000/svg’%3E%3Cfilter id=‘noise’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.9’ numOctaves=‘4’ stitchTiles=‘stitch’/%3E%3C/filter%3E%3Crect width=‘100%25’ height=‘100%25’ filter=‘url(%23noise)’ opacity=‘0.04’/%3E%3C/svg%3E”);
+pointer-events: none;
+z-index: 9999;
+opacity: 0.6;
+}
+
+/* Ambient blobs */
+.ambient {
+position: fixed;
+border-radius: 50%;
+filter: blur(120px);
+pointer-events: none;
+z-index: 0;
+animation: float 20s ease-in-out infinite;
+}
+.ambient-1 { width: 500px; height: 500px; background: rgba(184,168,232,0.06); top: -100px; left: -100px; animation-delay: 0s; }
+.ambient-2 { width: 400px; height: 400px; background: rgba(232,196,122,0.05); top: 30%; right: -100px; animation-delay: -7s; }
+.ambient-3 { width: 300px; height: 300px; background: rgba(106,232,212,0.04); bottom: 200px; left: 20%; animation-delay: -13s; }
+
+@keyframes float {
+0%, 100% { transform: translate(0, 0) scale(1); }
+33% { transform: translate(30px, -20px) scale(1.05); }
+66% { transform: translate(-20px, 30px) scale(0.95); }
+}
+
+/* ── LAYOUT ── */
+.app-wrapper {
+position: relative;
+z-index: 1;
+display: grid;
+grid-template-columns: 260px 1fr;
+grid-template-rows: 1fr var(–player-h);
+height: 100vh;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+grid-row: 1 / 2;
+border-right: 1px solid var(–border);
+padding: 28px 0;
+display: flex;
+flex-direction: column;
+gap: 0;
+overflow-y: auto;
+background: rgba(10,8,15,0.6);
+backdrop-filter: blur(20px);
+}
+
+.logo-wrap {
+padding: 0 24px 32px;
+border-bottom: 1px solid var(–border);
+}
+
+.logo {
+font-family: ‘Syne’, sans-serif;
+font-size: 32px;
+font-weight: 800;
+letter-spacing: -1px;
+color: var(–cream);
+line-height: 1;
+}
+.logo span { color: var(–gold); }
+.logo-sub {
+font-family: ‘DM Mono’, monospace;
+font-size: 9px;
+color: var(–muted);
+letter-spacing: 3px;
+text-transform: uppercase;
+margin-top: 6px;
+}
+
+.nav-section {
+padding: 20px 0 8px;
+}
+.nav-label {
+font-size: 9px;
+letter-spacing: 3px;
+text-transform: uppercase;
+color: var(–muted);
+padding: 0 24px 8px;
+}
+.nav-item {
+display: flex;
+align-items: center;
+gap: 12px;
+padding: 10px 24px;
+font-size: 13px;
+color: var(–muted);
+cursor: pointer;
+transition: all 0.2s;
+border-left: 2px solid transparent;
+font-family: ‘DM Mono’, monospace;
+}
+.nav-item:hover { color: var(–cream); background: rgba(255,255,255,0.03); }
+.nav-item.active { color: var(–gold); border-left-color: var(–gold); background: rgba(232,196,122,0.05); }
+.nav-icon { font-size: 15px; width: 20px; text-align: center; }
+
+.shelf-items {
+padding: 8px 0;
+flex: 1;
+}
+.shelf-item {
+display: flex;
+align-items: center;
+gap: 10px;
+padding: 8px 24px;
+cursor: pointer;
+transition: all 0.2s;
+}
+.shelf-item:hover { background: rgba(255,255,255,0.03); }
+.shelf-dot {
+width: 28px;
+height: 28px;
+border-radius: 4px;
+flex-shrink: 0;
+}
+.shelf-info { flex: 1; min-width: 0; }
+.shelf-name {
+font-size: 11px;
+color: var(–cream);
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+.shelf-meta { font-size: 9px; color: var(–muted); margin-top: 1px; }
+
+.sidebar-footer {
+padding: 16px 24px 0;
+border-top: 1px solid var(–border);
+margin-top: auto;
+}
+.user-pill {
+display: flex;
+align-items: center;
+gap: 10px;
+padding: 8px 0;
+cursor: pointer;
+}
+.avatar {
+width: 32px; height: 32px;
+border-radius: 50%;
+background: linear-gradient(135deg, var(–lilac), var(–coral));
+display: flex; align-items: center; justify-content: center;
+font-size: 12px;
+font-family: ‘Syne’, sans-serif;
+font-weight: 800;
+color: white;
+flex-shrink: 0;
+}
+.user-name { font-size: 12px; color: var(–cream); }
+.user-handle { font-size: 9px; color: var(–muted); }
+
+/* ── MAIN ── */
+.main {
+grid-column: 2;
+grid-row: 1 / 2;
+overflow-y: auto;
+position: relative;
+}
+
+/* Top bar */
+.topbar {
+position: sticky;
+top: 0;
+z-index: 100;
+padding: 16px 32px;
+display: flex;
+align-items: center;
+gap: 16px;
+background: rgba(15,13,18,0.85);
+backdrop-filter: blur(20px);
+border-bottom: 1px solid var(–border);
+}
+.search-wrap {
+flex: 1;
+position: relative;
+max-width: 400px;
+}
+.search-input {
+width: 100%;
+background: rgba(255,255,255,0.05);
+border: 1px solid var(–border);
+border-radius: 24px;
+padding: 9px 16px 9px 38px;
+color: var(–cream);
+font-family: ‘DM Mono’, monospace;
+font-size: 12px;
+outline: none;
+transition: all 0.2s;
+}
+.search-input::placeholder { color: var(–muted); }
+.search-input:focus { border-color: var(–gold-dim); background: rgba(255,255,255,0.07); }
+.search-icon {
+position: absolute;
+left: 13px;
+top: 50%;
+transform: translateY(-50%);
+color: var(–muted);
+display: flex;
+align-items: center;
+justify-content: center;
+line-height: 0;
+}
+.topbar-actions { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+.topbar-btn {
+background: none;
+border: 1px solid var(–border);
+border-radius: 20px;
+padding: 7px 16px;
+color: var(–muted);
+font-family: ‘DM Mono’, monospace;
+font-size: 11px;
+cursor: pointer;
+transition: all 0.2s;
+letter-spacing: 1px;
+}
+.topbar-btn:hover { color: var(–cream); border-color: rgba(255,255,255,0.2); }
+.topbar-btn.primary {
+background: var(–gold);
+border-color: var(–gold);
+color: var(–black);
+font-weight: 700;
+}
+
+/* Content sections */
+.content { padding: 32px; }
+
+.section-header {
+display: flex;
+align-items: baseline;
+justify-content: space-between;
+margin-bottom: 20px;
+}
+.section-title {
+font-family: ‘Playfair Display’, serif;
+font-size: 22px;
+font-weight: 400;
+color: var(–cream);
+letter-spacing: -0.5px;
+}
+.section-title em { font-style: italic; color: var(–gold); }
+.section-link {
+font-size: 10px;
+color: var(–muted);
+letter-spacing: 2px;
+text-transform: uppercase;
+cursor: pointer;
+transition: color 0.2s;
+}
+.section-link:hover { color: var(–gold); }
+
+/* ── PASTURE / MOOD CLOUD ── */
+.pasture-intro {
+background: linear-gradient(135deg, rgba(184,168,232,0.08), rgba(232,196,122,0.06));
+border: 1px solid var(–border-warm);
+border-radius: 16px;
+padding: 28px 32px;
+margin-bottom: 32px;
+position: relative;
+overflow: hidden;
+}
+.pasture-intro::before {
+content: ‘’;
+position: absolute;
+top: -50%; right: -50%;
+width: 300px; height: 300px;
+background: radial-gradient(circle, rgba(232,196,122,0.06) 0%, transparent 70%);
+pointer-events: none;
+}
+.pasture-eyebrow {
+font-size: 9px;
+letter-spacing: 3px;
+text-transform: uppercase;
+color: var(–gold);
+margin-bottom: 8px;
+}
+.pasture-headline {
+font-family: ‘Playfair Display’, serif;
+font-size: 26px;
+font-style: italic;
+color: var(–cream);
+margin-bottom: 6px;
+line-height: 1.3;
+}
+.pasture-sub {
+font-size: 11px;
+color: var(–muted);
+line-height: 1.6;
+max-width: 500px;
+}
+
+.mood-cloud {
+display: flex;
+flex-wrap: wrap;
+gap: 8px;
+margin-bottom: 32px;
+}
+.mood-tag {
+border: 1px solid var(–border);
+border-radius: 20px;
+padding: 7px 16px;
+font-size: 11px;
+color: var(–muted);
+cursor: pointer;
+transition: all 0.2s;
+background: rgba(255,255,255,0.02);
+font-family: ‘DM Mono’, monospace;
+letter-spacing: 0.5px;
+}
+.mood-tag:hover {
+color: var(–cream);
+border-color: rgba(255,255,255,0.2);
+background: rgba(255,255,255,0.05);
+transform: translateY(-1px);
+}
+.mood-tag.active {
+background: rgba(232,196,122,0.12);
+border-color: var(–gold-dim);
+color: var(–gold);
+}
+.mood-tag.size-lg { font-size: 13px; padding: 9px 20px; }
+.mood-tag.size-sm { font-size: 10px; padding: 5px 12px; opacity: 0.7; }
+
+/* ── DRIFT CARDS (community phrases) ── */
+.drift-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+gap: 12px;
+margin-bottom: 32px;
+}
+.drift-card {
+background: var(–card);
+border: 1px solid var(–border);
+border-radius: 12px;
+padding: 20px;
+cursor: pointer;
+transition: all 0.25s;
+position: relative;
+overflow: hidden;
+}
+.drift-card::before {
+content: ‘’;
+position: absolute;
+inset: 0;
+background: linear-gradient(135deg, var(–accent-color, rgba(232,196,122,0.06)), transparent);
+opacity: 0;
+transition: opacity 0.25s;
+}
+.drift-card:hover {
+border-color: rgba(255,255,255,0.15);
+transform: translateY(-2px);
+background: var(–card-hover);
+}
+.drift-card:hover::before { opacity: 1; }
+.drift-quote {
+font-family: ‘Playfair Display’, serif;
+font-style: italic;
+font-size: 15px;
+color: var(–cream);
+line-height: 1.6;
+margin-bottom: 12px;
+}
+.drift-meta {
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+.drift-felt {
+font-size: 10px;
+color: var(–muted);
+}
+.drift-felt strong { color: var(–gold); }
+.drift-user { font-size: 10px; color: var(–muted); display: flex; align-items: center; gap: 6px; }
+.mini-avatar {
+width: 18px; height: 18px;
+border-radius: 50%;
+flex-shrink: 0;
+}
+
+/* ── TRACK ROWS ── */
+.track-list { display: flex; flex-direction: column; gap: 2px; margin-bottom: 32px; }
+.track-row {
+display: grid;
+grid-template-columns: 36px 44px 1fr auto auto;
+align-items: center;
+gap: 12px;
+padding: 10px 12px;
+border-radius: 8px;
+cursor: pointer;
+transition: all 0.15s;
+position: relative;
+}
+.track-row:hover { background: rgba(255,255,255,0.04); }
+.track-row.playing { background: rgba(232,196,122,0.06); }
+.track-num {
+font-size: 11px;
+color: var(–muted);
+text-align: center;
+font-variant-numeric: tabular-nums;
+}
+.track-row.playing .track-num { color: var(–gold); }
+.track-art {
+width: 44px; height: 44px;
+border-radius: 6px;
+object-fit: cover;
+flex-shrink: 0;
+background: var(–warm-dark);
+display: flex; align-items: center; justify-content: center;
+font-size: 18px;
+}
+.track-info { min-width: 0; }
+.track-name {
+font-size: 13px;
+color: var(–cream);
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+font-family: ‘DM Mono’, monospace;
+}
+.track-row.playing .track-name { color: var(–gold); }
+.track-artist { font-size: 11px; color: var(–muted); margin-top: 2px; }
+.track-tag {
+font-size: 9px;
+letter-spacing: 1px;
+padding: 3px 8px;
+border-radius: 10px;
+border: 1px solid;
+white-space: nowrap;
+}
+.track-duration { font-size: 11px; color: var(–muted); font-variant-numeric: tabular-nums; }
+
+/* ── BRANCH / THREAD ── */
+.branch-section {
+background: var(–card);
+border: 1px solid var(–border);
+border-radius: 16px;
+padding: 24px;
+margin-bottom: 32px;
+}
+.branch-header {
+display: flex;
+align-items: center;
+gap: 12px;
+margin-bottom: 20px;
+}
+.branch-seed {
+flex: 1;
+}
+.branch-seed-label { font-size: 9px; color: var(–muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+.branch-seed-text {
+font-family: ‘Playfair Display’, serif;
+font-style: italic;
+font-size: 16px;
+color: var(–cream);
+}
+.branch-count { font-size: 10px; color: var(–muted); }
+
+.branch-thread {
+display: flex;
+flex-direction: column;
+gap: 0;
+position: relative;
+}
+.branch-thread::before {
+content: ‘’;
+position: absolute;
+left: 14px;
+top: 28px;
+bottom: 28px;
+width: 1px;
+background: linear-gradient(to bottom, var(–gold-dim), transparent);
+}
+.branch-node {
+display: flex;
+gap: 14px;
+padding: 10px 0;
+cursor: pointer;
+align-items: flex-start;
+transition: all 0.2s;
+}
+.branch-node:hover .branch-node-card { border-color: rgba(255,255,255,0.12); background: var(–card-hover); }
+.branch-dot {
+width: 29px; height: 29px;
+border-radius: 6px;
+flex-shrink: 0;
+display: flex; align-items: center; justify-content: center;
+font-size: 14px;
+margin-top: 2px;
+position: relative;
+z-index: 1;
+}
+.branch-node-card {
+flex: 1;
+background: rgba(255,255,255,0.02);
+border: 1px solid var(–border);
+border-radius: 10px;
+padding: 12px 14px;
+transition: all 0.2s;
+}
+.branch-node-top {
+display: flex;
+align-items: center;
+justify-content: space-between;
+margin-bottom: 6px;
+}
+.branch-node-song { font-size: 12px; color: var(–cream); }
+.branch-node-song span { color: var(–muted); font-size: 10px; }
+.branch-node-comment {
+font-family: ‘Playfair Display’, serif;
+font-style: italic;
+font-size: 13px;
+color: var(–muted);
+line-height: 1.5;
+}
+.branch-node-footer {
+display: flex;
+align-items: center;
+gap: 12px;
+margin-top: 8px;
+}
+.felt-btn {
+font-size: 10px;
+color: var(–muted);
+cursor: pointer;
+display: flex; align-items: center; gap: 4px;
+transition: color 0.2s;
+}
+.felt-btn:hover { color: var(–coral); }
+.felt-btn.active { color: var(–coral); }
+
+/* ── PLAYER ── */
+.player {
+grid-column: 1 / -1;
+grid-row: 2;
+height: var(–player-h);
+background: rgba(10,8,15,0.95);
+backdrop-filter: blur(30px);
+border-top: 1px solid var(–border);
+display: grid;
+grid-template-columns: 280px 360px 280px;
+justify-content: space-between;
+align-items: center;
+padding: 0 24px 0 12px;
+gap: 20px;
+position: relative;
+z-index: 200;
+overflow: visible;
+}
+.player::before {
+content: ‘’;
+position: absolute;
+top: 0; left: 0; right: 0;
+height: 1px;
+background: linear-gradient(90deg, transparent, var(–gold-dim), transparent);
+}
+
+/* Left column — art + info + heart in one row */
+.player-left {
+display: flex;
+align-items: center;
+gap: 12px;
+min-width: 0;
+}
+.now-art {
+width: 56px; height: 56px;
+border-radius: 6px;
+flex-shrink: 0;
+background: linear-gradient(135deg, #2a1f3d, #1a2f3d);
+position: relative;
+box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+transition: box-shadow 0.3s;
+overflow: hidden;
+}
+.now-art.playing { box-shadow: 0 4px 24px rgba(184,168,232,0.25); }
+.now-art::after {
+content: ‘’;
+position: absolute; inset: 0;
+background: linear-gradient(135deg, rgba(255,255,255,0.07) 0%, transparent 60%);
+pointer-events: none;
+}
+.now-info {
+flex: 1;
+min-width: 0;
+display: flex;
+flex-direction: column;
+justify-content: center;
+gap: 2px;
+}
+.now-title {
+font-size: 12px;
+color: var(–cream);
+font-family: ‘DM Mono’, monospace;
+white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+line-height: 1.2;
+}
+.now-artist { font-size: 10px; color: var(–muted); line-height: 1.2; }
+.now-felt-wrap {
+position: relative;
+height: 28px;
+overflow: hidden;
+}
+.now-felt {
+position: absolute;
+top: 0; left: 0; right: 0;
+font-size: 9.5px;
+font-style: italic;
+font-family: ‘Playfair Display’, serif;
+line-height: 1.45;
+transition: opacity 0.5s ease, transform 0.5s ease;
+opacity: 1;
+transform: translateY(0);
+}
+.now-felt.yours  { color: var(–gold); }
+.now-felt.theirs { color: var(–lilac); }
+.now-felt.leaving  { opacity: 0; transform: translateY(-8px); }
+.now-felt.entering { opacity: 0; transform: translateY(8px); }
+.heart-btn {
+background: none; border: none; cursor: pointer;
+padding: 4px; flex-shrink: 0;
+display: flex; align-items: center; justify-content: center;
+transition: transform 0.2s;
+}
+.heart-btn svg { stroke: var(–muted); fill: none; transition: all 0.2s; }
+.heart-btn:hover svg, .heart-btn.active svg { stroke: var(–coral); fill: var(–coral); }
+
+/* Center column */
+.player-center {
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 6px;
+}
+.player-controls {
+display: flex;
+align-items: center;
+gap: 16px;
+}
+.progress-wrap {
+width: 100%;
+display: flex;
+align-items: center;
+gap: 10px;
+}
+.time { font-size: 10px; color: var(–muted); font-variant-numeric: tabular-nums; min-width: 28px; }
+.time.right { text-align: right; }
+.progress-bar {
+flex: 1; height: 3px;
+background: rgba(255,255,255,0.1);
+border-radius: 2px;
+cursor: pointer;
+position: relative;
+}
+.progress-fill {
+height: 100%;
+background: linear-gradient(90deg, var(–gold), var(–coral));
+border-radius: 2px;
+width: 37%;
+transition: width 0.5s linear;
+}
+.progress-thumb {
+position: absolute;
+right: calc(63% - 5px);
+top: -3px;
+width: 9px; height: 9px;
+background: var(–cream);
+border-radius: 50%;
+opacity: 0;
+transition: opacity 0.2s;
+}
+.progress-bar:hover .progress-thumb { opacity: 1; }
+
+/* Right column */
+.player-right {
+display: flex;
+align-items: center;
+justify-content: flex-end;
+gap: 16px;
+}
+.vol-wrap { display: flex; align-items: center; gap: 8px; }
+.vol-bar {
+width: 80px; height: 3px;
+background: rgba(255,255,255,0.1);
+border-radius: 2px;
+cursor: pointer;
+}
+.vol-fill { height: 100%; background: rgba(255,255,255,0.3); border-radius: 2px; width: 70%; }
+.queue-icon { border: 1px solid var(–border); border-radius: 6px; padding: 5px 8px; gap: 5px; flex-direction: row; }
+
+/* Icon buttons */
+.icon-btn {
+background: none; border: none; cursor: pointer;
+color: var(–muted); padding: 5px;
+display: flex; align-items: center; justify-content: center;
+transition: color 0.25s ease;
+border-radius: 50%;
+}
+.icon-btn:hover { color: var(–cream); }
+.icon-btn.active { color: var(–gold); }
+.icon-btn svg { display: block; }
+.play-btn {
+width: 36px; height: 36px;
+border-radius: 50%;
+background: var(–cream) !important;
+border: none; cursor: pointer;
+display: flex; align-items: center; justify-content: center;
+transition: transform 0.2s, box-shadow 0.2s;
+box-shadow: 0 0 20px rgba(240,232,216,0.15);
+color: var(–black);
+flex-shrink: 0;
+}
+.play-btn:hover { transform: scale(1.06); }
+.play-btn:active { transform: scale(0.97); }
+.play-btn svg { display: block; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+/* Animations */
+@keyframes fadeUp {
+from { opacity: 0; transform: translateY(16px); }
+to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.5s ease forwards; }
+.fade-up-1 { animation-delay: 0.05s; opacity: 0; }
+.fade-up-2 { animation-delay: 0.1s; opacity: 0; }
+.fade-up-3 { animation-delay: 0.15s; opacity: 0; }
+.fade-up-4 { animation-delay: 0.2s; opacity: 0; }
+.fade-up-5 { animation-delay: 0.25s; opacity: 0; }
+
+/* Playing indicator */
+.playing-bar {
+display: flex;
+align-items: flex-end;
+gap: 2px;
+height: 14px;
+}
+.playing-bar span {
+width: 3px;
+background: var(–gold);
+border-radius: 1px;
+animation: bounce 0.8s ease infinite alternate;
+}
+.playing-bar span:nth-child(2) { animation-delay: 0.15s; }
+.playing-bar span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes bounce {
+from { height: 4px; }
+to { height: 14px; }
+}
+
+/* Shelf type badges in sidebar */
+.shelf-type {
+font-size: 8px;
+letter-spacing: 1.5px;
+text-transform: uppercase;
+padding: 2px 6px;
+border-radius: 3px;
+flex-shrink: 0;
+}
+.shelf-type.album  { background: rgba(184,168,232,0.15); color: var(–lilac); }
+.shelf-type.song   { background: rgba(106,232,212,0.12); color: var(–teal); }
+.shelf-type.mixtape { background: rgba(232,196,122,0.15); color: var(–gold); }
+
+/* Shelf section tabs */
+.shelf-tabs {
+display: flex;
+gap: 4px;
+margin-bottom: 20px;
+background: rgba(255,255,255,0.03);
+border: 1px solid var(–border);
+border-radius: 10px;
+padding: 4px;
+}
+.shelf-tab {
+flex: 1;
+padding: 7px 0;
+text-align: center;
+font-size: 10px;
+letter-spacing: 1.5px;
+text-transform: uppercase;
+color: var(–muted);
+cursor: pointer;
+border-radius: 7px;
+transition: all 0.2s;
+font-family: ‘DM Mono’, monospace;
+}
+.shelf-tab:hover { color: var(–cream); }
+.shelf-tab.active { background: rgba(255,255,255,0.07); color: var(–cream); }
+.shelf-tab.active.albums { color: var(–lilac); }
+.shelf-tab.active.songs  { color: var(–teal); }
+.shelf-tab.active.mixtapes { color: var(–gold); }
+
+/* Album grid */
+.album-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+gap: 14px;
+margin-bottom: 32px;
+}
+.album-card {
+cursor: pointer;
+transition: all 0.2s;
+border-radius: 10px;
+overflow: hidden;
+}
+.album-card:hover { transform: translateY(-3px); }
+.album-art {
+width: 100%; aspect-ratio: 1;
+border-radius: 8px;
+display: flex; align-items: center; justify-content: center;
+position: relative;
+overflow: hidden;
+margin-bottom: 8px;
+}
+.album-art-inner {
+position: absolute; inset: 0;
+display: flex; align-items: center; justify-content: center;
+}
+.album-art svg { opacity: 0.25; }
+.album-overlay {
+position: absolute; inset: 0;
+background: rgba(0,0,0,0.4);
+display: flex; align-items: center; justify-content: center;
+opacity: 0; transition: opacity 0.2s;
+}
+.album-card:hover .album-overlay { opacity: 1; }
+.album-title { font-size: 12px; color: var(–cream); font-family: ‘DM Mono’, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.album-artist { font-size: 10px; color: var(–muted); margin-top: 2px; }
+.album-felt { font-size: 9px; color: var(–gold); margin-top: 3px; font-style: italic; font-family: ‘Playfair Display’, serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Mixtape cards */
+.mixtape-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+gap: 12px;
+margin-bottom: 32px;
+}
+.mixtape-card {
+background: var(–card);
+border: 1px solid var(–border);
+border-radius: 12px;
+padding: 16px;
+cursor: pointer;
+transition: all 0.2s;
+position: relative;
+overflow: hidden;
+}
+.mixtape-card::before {
+content: ‘’;
+position: absolute; top: 0; left: 0; right: 0; height: 2px;
+background: var(–tape-color, var(–gold));
+}
+.mixtape-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.12); background: var(–card-hover); }
+.mixtape-icon {
+width: 36px; height: 36px;
+margin-bottom: 10px;
+color: var(–muted);
+}
+.mixtape-name { font-size: 13px; color: var(–cream); font-family: ‘Syne’, sans-serif; font-weight: 700; margin-bottom: 4px; }
+.mixtape-meta { font-size: 10px; color: var(–muted); }
+.mixtape-phrase { font-size: 11px; color: var(–muted); font-style: italic; font-family: ‘Playfair Display’, serif; margin-top: 8px; line-height: 1.4; }
+
+/* Saved songs list */
+.songs-list { display: flex; flex-direction: column; gap: 2px; margin-bottom: 32px; }
+.song-saved-row {
+display: grid;
+grid-template-columns: 44px 1fr auto auto;
+align-items: center;
+gap: 12px;
+padding: 8px 10px;
+border-radius: 8px;
+cursor: pointer;
+transition: all 0.15s;
+}
+.song-saved-row:hover { background: rgba(255,255,255,0.04); }
+.song-saved-art {
+width: 44px; height: 44px;
+border-radius: 6px;
+display: flex; align-items: center; justify-content: center;
+flex-shrink: 0;
+position: relative;
+overflow: hidden;
+}
+.song-saved-art svg { opacity: 0.3; }
+.song-saved-info { min-width: 0; }
+.song-saved-name { font-size: 13px; color: var(–cream); font-family: ‘DM Mono’, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.song-saved-artist { font-size: 10px; color: var(–muted); margin-top: 2px; }
+.song-saved-felt { font-size: 10px; color: var(–gold); margin-top: 2px; font-style: italic; font-family: ‘Playfair Display’, serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.song-saved-tag { font-size: 9px; letter-spacing: 1px; padding: 3px 8px; border-radius: 10px; border: 1px solid; white-space: nowrap; }
+.song-saved-dur { font-size: 11px; color: var(–muted); font-variant-numeric: tabular-nums; }
+</style>
+
+</head>
+<body>
+
+<div class="ambient ambient-1"></div>
+<div class="ambient ambient-2"></div>
+<div class="ambient ambient-3"></div>
+
+<div class="app-wrapper">
+
+  <!-- ── SIDEBAR ── -->
+
+  <aside class="sidebar">
+    <div class="logo-wrap">
+      <div class="logo">e<span>w</span>e</div>
+      <div class="logo-sub">an algorithmic departure</div>
+    </div>
+
+```
+<div class="nav-section">
+  <div class="nav-label">navigate</div>
+  <div class="nav-item active" onclick="switchView('pasture', this)">
+    <span class="nav-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18 Q6 10 12 14 Q18 18 21 6"/><path d="M3 22h18"/></svg>
+    </span> the pasture
+  </div>
+  <div class="nav-item" onclick="switchView('drift', this)">
+    <span class="nav-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12 Q8 6 12 12 Q16 18 20 12"/></svg>
+    </span> drift
+  </div>
+  <div class="nav-item" onclick="switchView('herd', this)">
+    <span class="nav-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="3"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><circle cx="17" cy="7" r="2"/><path d="M21 21v-1.5a3 3 0 0 0-2-2.83"/></svg>
+    </span> your herd
+  </div>
+  <div class="nav-item" onclick="switchView('shelf', this)">
+    <span class="nav-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    </span> shelf
+  </div>
+  <div class="nav-item" onclick="switchView('catalog', this)">
+    <span class="nav-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    </span> catalog
+  </div>
+</div>
+
+<div class="nav-section" style="border-top: 1px solid var(--border); padding-top: 20px;">
+  <div class="nav-label">your shelf</div>
+</div>
+<div class="shelf-items">
+  <!-- mixtapes -->
+  <div class="shelf-item">
+    <div class="shelf-dot" style="background: linear-gradient(135deg, #e8c47a, #e87a6a);"></div>
+    <div class="shelf-info">
+      <div class="shelf-name">late night driving</div>
+      <div class="shelf-meta">24 tracks</div>
+    </div>
+    <span class="shelf-type mixtape">mixtape</span>
+  </div>
+  <div class="shelf-item">
+    <div class="shelf-dot" style="background: linear-gradient(135deg, #b8a8e8, #6ae8d4);"></div>
+    <div class="shelf-info">
+      <div class="shelf-name">overheard at 2am</div>
+      <div class="shelf-meta">12 tracks</div>
+    </div>
+    <span class="shelf-type mixtape">mixtape</span>
+  </div>
+  <!-- albums -->
+  <div class="shelf-item">
+    <div class="shelf-dot" style="background: linear-gradient(135deg, #2a1f3d, #1a2f3d); border-radius: 3px;"></div>
+    <div class="shelf-info">
+      <div class="shelf-name">Good News for People Who Love Bad News</div>
+      <div class="shelf-meta">Modest Mouse</div>
+    </div>
+    <span class="shelf-type album">album</span>
+  </div>
+  <div class="shelf-item">
+    <div class="shelf-dot" style="background: linear-gradient(135deg, #1a3d2a, #1a1f3d); border-radius: 3px;"></div>
+    <div class="shelf-info">
+      <div class="shelf-name">Carrie & Lowell</div>
+      <div class="shelf-meta">Sufjan Stevens</div>
+    </div>
+    <span class="shelf-type album">album</span>
+  </div>
+  <!-- songs -->
+  <div class="shelf-item">
+    <div class="shelf-dot" style="background: linear-gradient(135deg, #6ae8d4, #6ae87a); border-radius: 50%;"></div>
+    <div class="shelf-info">
+      <div class="shelf-name">Float On</div>
+      <div class="shelf-meta">Modest Mouse</div>
+    </div>
+    <span class="shelf-type song">song</span>
+  </div>
+  <div class="shelf-item">
+    <div class="shelf-dot" style="background: linear-gradient(135deg, #e87a6a, #b8a8e8); border-radius: 50%;"></div>
+    <div class="shelf-info">
+      <div class="shelf-name">Please Please Please</div>
+      <div class="shelf-meta">Sabrina Carpenter</div>
+    </div>
+    <span class="shelf-type song">song</span>
+  </div>
+</div>
+
+<div class="sidebar-footer">
+  <div class="user-pill">
+    <div class="avatar">E</div>
+    <div>
+      <div class="user-name">echowanderer</div>
+      <div class="user-handle">47 in herd</div>
+    </div>
+  </div>
+</div>
+```
+
+  </aside>
+
+  <!-- ── MAIN CONTENT ── -->
+
+  <main class="main" id="mainContent">
+    <div class="topbar">
+      <div class="search-wrap">
+        <span class="search-icon">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </span>
+        <input class="search-input" type="text" placeholder="search by feeling, phrase, or song...">
+      </div>
+      <div class="topbar-actions">
+        <button class="topbar-btn">overheard</button>
+        <button class="topbar-btn primary">+ add to shelf</button>
+      </div>
+    </div>
+
+```
+<div class="content" id="viewContent">
+
+  <!-- PASTURE VIEW (default) -->
+  <div id="view-pasture">
+
+    <div class="pasture-intro fade-up fade-up-1">
+      <div class="pasture-eyebrow">the pasture</div>
+      <div class="pasture-headline">What are you carrying<br>into this moment?</div>
+      <div class="pasture-sub">These words live here because real people used them to describe real songs. Choose what resonates — not what an algorithm decided you are today.</div>
+    </div>
+
+    <div class="section-header fade-up fade-up-2">
+      <div class="section-title">I'm feeling <em>something like...</em></div>
+      <div class="section-link" onclick="shuffleMoods()">shuffle →</div>
+    </div>
+
+    <div class="mood-cloud fade-up fade-up-2" id="moodCloud">
+      <div class="mood-tag size-lg" onclick="selectMood(this)">untethered</div>
+      <div class="mood-tag" onclick="selectMood(this)">searching</div>
+      <div class="mood-tag size-sm" onclick="selectMood(this)">hollow</div>
+      <div class="mood-tag size-lg" onclick="selectMood(this)">electric</div>
+      <div class="mood-tag" onclick="selectMood(this)">nostalgic</div>
+      <div class="mood-tag size-sm" onclick="selectMood(this)">tender</div>
+      <div class="mood-tag" onclick="selectMood(this)">restless</div>
+      <div class="mood-tag size-lg" onclick="selectMood(this)">seen</div>
+      <div class="mood-tag size-sm" onclick="selectMood(this)">charged</div>
+      <div class="mood-tag" onclick="selectMood(this)">soft</div>
+      <div class="mood-tag size-lg" onclick="selectMood(this)">aching</div>
+      <div class="mood-tag size-sm" onclick="selectMood(this)">loud inside</div>
+      <div class="mood-tag" onclick="selectMood(this)">wistful</div>
+      <div class="mood-tag" onclick="selectMood(this)">like beginning</div>
+      <div class="mood-tag size-lg" onclick="selectMood(this)">unraveling</div>
+      <div class="mood-tag size-sm" onclick="selectMood(this)">still</div>
+      <div class="mood-tag" onclick="selectMood(this)">in between</div>
+      <div class="mood-tag" onclick="selectMood(this)">grateful somehow</div>
+      <div class="mood-tag size-sm" onclick="selectMood(this)">defiant</div>
+      <div class="mood-tag size-lg" onclick="selectMood(this)">homesick</div>
+    </div>
+
+    <!-- BRANCH / DRIFT THREAD -->
+    <div class="section-header fade-up fade-up-3">
+      <div class="section-title">A <em>drift</em> nearby</div>
+      <div class="section-link">follow thread →</div>
+    </div>
+
+    <div class="branch-section fade-up fade-up-3">
+      <div class="branch-header">
+        <div class="branch-seed">
+          <div class="branch-seed-label">this thread started when</div>
+          <div class="branch-seed-text">"sounds like deciding things will probably be alright"</div>
+        </div>
+        <div class="branch-count">23 connected</div>
+      </div>
+      <div class="branch-thread">
+        <div class="branch-node">
+          <div class="branch-dot" style="background: linear-gradient(135deg, #2a1f3d, #1a2f3d);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(184,168,232,0.7)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div class="branch-node-card">
+            <div class="branch-node-top">
+              <div class="branch-node-song">Float On <span>· Modest Mouse</span></div>
+              <div class="playing-bar"><span></span><span></span><span></span></div>
+            </div>
+            <div class="branch-node-comment">"This is where the drift started. Someone said it sounded like deciding to be okay with things."</div>
+            <div class="branch-node-footer">
+              <span class="felt-btn active" onclick="toggleFelt(this)">♥ 41 felt this</span>
+              <span class="felt-btn" onclick="addToShelf(this)">+ shelf</span>
+              <span class="felt-btn" onclick="passToBranch(this)">↗ pass on</span>
+            </div>
+          </div>
+        </div>
+        <div class="branch-node">
+          <div class="branch-dot" style="background: linear-gradient(135deg, #1a2f2a, #1a1f3d);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(106,232,212,0.7)" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          </div>
+          <div class="branch-node-card">
+            <div class="branch-node-top">
+              <div class="branch-node-song">Whenever You See Fit <span>· Modest Mouse</span></div>
+            </div>
+            <div class="branch-node-comment">"Quiet and a little hopeful. Like the moment after you stop fighting something."</div>
+            <div class="branch-node-footer">
+              <span class="felt-btn" onclick="toggleFelt(this)">♥ 28 felt this</span>
+              <span class="felt-btn" onclick="addToShelf(this)">+ shelf</span>
+              <span class="felt-btn" onclick="passToBranch(this)">↗ pass on</span>
+            </div>
+          </div>
+        </div>
+        <div class="branch-node">
+          <div class="branch-dot" style="background: linear-gradient(135deg, #2f1a1a, #2f2a1a);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(232,122,106,0.7)" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+          <div class="branch-node-card">
+            <div class="branch-node-top">
+              <div class="branch-node-song">Please Please Please <span>· Sabrina Carpenter</span></div>
+            </div>
+            <div class="branch-node-comment">"Someone wrote: this one sounds like wanting something so badly you forget to be cool about it."</div>
+            <div class="branch-node-footer">
+              <span class="felt-btn" onclick="toggleFelt(this)">♥ 19 felt this</span>
+              <span class="felt-btn" onclick="addToShelf(this)">+ shelf</span>
+              <span class="felt-btn" onclick="passToBranch(this)">↗ pass on</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMMUNITY PHRASES -->
+    <div class="section-header fade-up fade-up-4">
+      <div class="section-title">What the <em>herd</em> is saying</div>
+      <div class="section-link">drift in →</div>
+    </div>
+
+    <div class="drift-grid fade-up fade-up-4">
+      <div class="drift-card" style="--accent-color: rgba(184,168,232,0.08);" onclick="followDrift(this)">
+        <div class="drift-quote">"float on came on shuffle during the worst month of my life and something shifted"</div>
+        <div class="drift-meta">
+          <div class="drift-felt"><strong>34</strong> felt this</div>
+          <div class="drift-user">
+            <div class="mini-avatar" style="background: linear-gradient(135deg, #b8a8e8, #6ae8d4); border-radius: 50%;"></div>
+            quietroads
+          </div>
+        </div>
+      </div>
+      <div class="drift-card" style="--accent-color: rgba(232,122,106,0.08);" onclick="followDrift(this)">
+        <div class="drift-quote">"sabrina carpenter makes songs for people who are done pretending they don't know what they want"</div>
+        <div class="drift-meta">
+          <div class="drift-felt"><strong>61</strong> felt this</div>
+          <div class="drift-user">
+            <div class="mini-avatar" style="background: linear-gradient(135deg, #e87a6a, #e8c47a); border-radius: 50%;"></div>
+            glassjar
+          </div>
+        </div>
+      </div>
+      <div class="drift-card" style="--accent-color: rgba(106,232,212,0.08);" onclick="followDrift(this)">
+        <div class="drift-quote">"modest mouse sounds like what it feels like to be alive and not entirely sure how you feel about that"</div>
+        <div class="drift-meta">
+          <div class="drift-felt"><strong>88</strong> felt this</div>
+          <div class="drift-user">
+            <div class="mini-avatar" style="background: linear-gradient(135deg, #6ae8d4, #6ae87a); border-radius: 50%;"></div>
+            barefoot_static
+          </div>
+        </div>
+      </div>
+      <div class="drift-card" style="--accent-color: rgba(232,196,122,0.08);" onclick="followDrift(this)">
+        <div class="drift-quote">"the kind of song you discover alone and feel like no one else knows"</div>
+        <div class="drift-meta">
+          <div class="drift-felt"><strong>47</strong> felt this</div>
+          <div class="drift-user">
+            <div class="mini-avatar" style="background: linear-gradient(135deg, #e8c47a, #b8a8e8); border-radius: 50%;"></div>
+            lowvolume
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OVERHEARD TRACKS -->
+    <div class="section-header fade-up fade-up-5">
+      <div class="section-title"><em>Overheard</em> in your herd</div>
+      <div class="section-link">see all →</div>
+    </div>
+
+    <div class="track-list fade-up fade-up-5">
+      <div class="track-row playing" onclick="playTrack(this)">
+        <div class="track-num">
+          <div class="playing-bar"><span></span><span></span><span></span></div>
+        </div>
+        <div class="track-art" style="background: linear-gradient(135deg,#2a1f3d,#1a2f3d);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(184,168,232,0.5)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+        <div class="track-info">
+          <div class="track-name">Float On</div>
+          <div class="track-artist">Modest Mouse · Good News for People Who Love Bad News</div>
+        </div>
+        <div class="track-tag" style="color: var(--lilac); border-color: rgba(184,168,232,0.3);">untethered</div>
+        <div class="track-duration">5:37</div>
+      </div>
+      <div class="track-row" onclick="playTrack(this)">
+        <div class="track-num">2</div>
+        <div class="track-art" style="background: linear-gradient(135deg,#1f2a1f,#1a3d1a);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(138,232,122,0.5)" stroke-width="1.5" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </div>
+        <div class="track-info">
+          <div class="track-name">Missed the Boat</div>
+          <div class="track-artist">Modest Mouse · We Were Dead Before the Ship Even Sank</div>
+        </div>
+        <div class="track-tag" style="color: var(--gold); border-color: var(--gold-dim);">aching</div>
+        <div class="track-duration">4:27</div>
+      </div>
+      <div class="track-row" onclick="playTrack(this)">
+        <div class="track-num">3</div>
+        <div class="track-art" style="background: linear-gradient(135deg,#1a2f3d,#0f1f2f);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(106,232,212,0.5)" stroke-width="1.5" stroke-linecap="round"><path d="M3 18 Q6 10 12 14 Q18 18 21 6"/></svg>
+        </div>
+        <div class="track-info">
+          <div class="track-name">Taking up Space</div>
+          <div class="track-artist">Mustard Service · Daddy Dookie Brown</div>
+        </div>
+        <div class="track-tag" style="color: var(--teal); border-color: rgba(106,232,212,0.3);">still</div>
+        <div class="track-duration">7:01</div>
+      </div>
+      <div class="track-row" onclick="playTrack(this)">
+        <div class="track-num">4</div>
+        <div class="track-art" style="background: linear-gradient(135deg,#2f1a1a,#1a1520);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(232,122,106,0.5)" stroke-width="1.5" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </div>
+        <div class="track-info">
+          <div class="track-name">Please Please Please</div>
+          <div class="track-artist">Sabrina Carpenter · Short n' Sweet</div>
+        </div>
+        <div class="track-tag" style="color: var(--coral); border-color: rgba(232,122,106,0.3);">tender</div>
+        <div class="track-duration">3:50</div>
+      </div>
+      <div class="track-row" onclick="playTrack(this)">
+        <div class="track-num">5</div>
+        <div class="track-art" style="background: linear-gradient(135deg,#1a2a1f,#2a3d1a);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(138,232,122,0.5)" stroke-width="1.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div class="track-info">
+          <div class="track-name">Espresso</div>
+          <div class="track-artist">Sabrina Carpenter · Short n' Sweet</div>
+        </div>
+        <div class="track-tag" style="color: var(--green); border-color: rgba(138,232,122,0.3);">electric</div>
+        <div class="track-duration">5:22</div>
+      </div>
+    </div>
+
+  </div>
+  <!-- end pasture view -->
+
+  <!-- ── SHELF VIEW ── -->
+  <div id="view-shelf" style="display:none;">
+
+    <div class="pasture-intro fade-up fade-up-1" style="background: linear-gradient(135deg, rgba(232,196,122,0.07), rgba(184,168,232,0.05));">
+      <div class="pasture-eyebrow" style="color: var(--gold);">your shelf</div>
+      <div class="pasture-headline">Everything you've<br><em>held onto.</em></div>
+      <div class="pasture-sub">Albums, songs, and mixtapes you've saved. The shelf is yours — curated, not computed.</div>
+    </div>
+
+    <!-- Shelf tabs -->
+    <div class="shelf-tabs fade-up fade-up-2">
+      <div class="shelf-tab active albums" onclick="switchShelfTab('albums', this)">albums</div>
+      <div class="shelf-tab songs" onclick="switchShelfTab('songs', this)">songs</div>
+      <div class="shelf-tab mixtapes" onclick="switchShelfTab('mixtapes', this)">mixtapes</div>
+    </div>
+
+    <!-- Albums section -->
+    <div id="shelf-albums">
+      <div class="section-header fade-up fade-up-3">
+        <div class="section-title"><em>Albums</em> on your shelf</div>
+        <div class="section-link">8 saved →</div>
+      </div>
+      <div class="album-grid fade-up fade-up-3">
+        <div class="album-card" onclick="playTrackFrom(0)">
+          <div class="album-art" style="background: linear-gradient(135deg,#2a1f3d,#1a2f3d);">
+            <div class="album-art-inner">
+              <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="rgba(184,168,232,0.4)" stroke-width="1.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="9"/></svg>
+            </div>
+            <div class="album-overlay">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="none"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            </div>
+          </div>
+          <div class="album-title">Good News for People Who Love Bad News</div>
+          <div class="album-artist">Modest Mouse</div>
+          <div class="album-felt">"the sound of deciding to be okay anyway"</div>
+        </div>
+        <div class="album-card">
+          <div class="album-art" style="background: linear-gradient(135deg,#2f1a1a,#1a1520);">
+            <div class="album-art-inner">
+              <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="rgba(232,122,106,0.4)" stroke-width="1.2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </div>
+            <div class="album-overlay">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="none"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            </div>
+          </div>
+          <div class="album-title">Short n' Sweet</div>
+          <div class="album-artist">Sabrina Carpenter</div>
+          <div class="album-felt">"knowing exactly what you want and saying so"</div>
+        </div>
+        <div class="album-card">
+          <div class="album-art" style="background: linear-gradient(135deg,#1a2f3d,#0f1a2f);">
+            <div class="album-art-inner">
+              <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="rgba(106,232,212,0.4)" stroke-width="1.2" stroke-linecap="round"><path d="M3 18 Q6 10 12 14 Q18 18 21 6"/><path d="M3 22h18"/></svg>
+            </div>
+            <div class="album-overlay">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="none"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            </div>
+          </div>
+          <div class="album-title">We Were Dead Before the Ship Even Sank</div>
+          <div class="album-artist">Modest Mouse</div>
+          <div class="album-felt">"epic and a little doomed but still moving"</div>
+        </div>
+        <div class="album-card">
+          <div class="album-art" style="background: linear-gradient(135deg,#1f2a1a,#2a3a1a);">
+            <div class="album-art-inner">
+              <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="rgba(138,232,122,0.4)" stroke-width="1.2" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            </div>
+            <div class="album-overlay">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="none"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            </div>
+          </div>
+          <div class="album-title">emails i can't send</div>
+          <div class="album-artist">Sabrina Carpenter</div>
+          <div class="album-felt">"things you felt but never said out loud"</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Songs section -->
+    <div id="shelf-songs" style="display:none;">
+      <div class="section-header fade-up fade-up-3">
+        <div class="section-title"><em>Songs</em> on your shelf</div>
+        <div class="section-link">16 saved →</div>
+      </div>
+      <div class="songs-list fade-up fade-up-3">
+        <div class="song-saved-row" onclick="playTrackFrom(0)">
+          <div class="song-saved-art" style="background: linear-gradient(135deg,#2a1f3d,#1a2f3d);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(184,168,232,0.5)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div class="song-saved-info">
+            <div class="song-saved-name">Float On</div>
+            <div class="song-saved-artist">Modest Mouse · Good News for People Who Love Bad News</div>
+            <div class="song-saved-felt">"sounds like deciding things will probably be alright"</div>
+          </div>
+          <div class="song-saved-tag" style="color:var(--lilac); border-color:rgba(184,168,232,0.3);">untethered</div>
+          <div class="song-saved-dur">5:37</div>
+        </div>
+        <div class="song-saved-row" onclick="playTrackFrom(3)">
+          <div class="song-saved-art" style="background: linear-gradient(135deg,#2f1a1a,#1a1520);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(232,122,106,0.5)" stroke-width="1.5" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+          <div class="song-saved-info">
+            <div class="song-saved-name">Please Please Please</div>
+            <div class="song-saved-artist">Sabrina Carpenter · Short n' Sweet</div>
+            <div class="song-saved-felt">"wanting someone to just get it right this time"</div>
+          </div>
+          <div class="song-saved-tag" style="color:var(--coral); border-color:rgba(232,122,106,0.3);">tender</div>
+          <div class="song-saved-dur">3:50</div>
+        </div>
+        <div class="song-saved-row" onclick="playTrackFrom(2)">
+          <div class="song-saved-art" style="background: linear-gradient(135deg,#1a2f3d,#0f1f2f);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(106,232,212,0.5)" stroke-width="1.5" stroke-linecap="round"><path d="M3 18 Q6 10 12 14 Q18 18 21 6"/></svg>
+          </div>
+          <div class="song-saved-info">
+            <div class="song-saved-name">Missed the Boat</div>
+            <div class="song-saved-artist">Modest Mouse · We Were Dead Before the Ship Even Sank</div>
+            <div class="song-saved-felt">"realizing something too late but making peace with it"</div>
+          </div>
+          <div class="song-saved-tag" style="color:var(--teal); border-color:rgba(106,232,212,0.3);">still</div>
+          <div class="song-saved-dur">7:01</div>
+        </div>
+        <div class="song-saved-row" onclick="playTrackFrom(4)">
+          <div class="song-saved-art" style="background: linear-gradient(135deg,#1a2a1f,#2a3d1a);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(138,232,122,0.5)" stroke-width="1.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <div class="song-saved-info">
+            <div class="song-saved-name">Espresso</div>
+            <div class="song-saved-artist">Sabrina Carpenter · Short n' Sweet</div>
+            <div class="song-saved-felt">"confident and a little dangerous and fully aware of it"</div>
+          </div>
+          <div class="song-saved-tag" style="color:var(--green); border-color:rgba(138,232,122,0.3);">electric</div>
+          <div class="song-saved-dur">5:22</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mixtapes section -->
+    <div id="shelf-mixtapes" style="display:none;">
+      <div class="section-header fade-up fade-up-3">
+        <div class="section-title">Your <em>mixtapes</em></div>
+        <div class="section-link">+ make one →</div>
+      </div>
+      <div class="mixtape-grid fade-up fade-up-3">
+        <div class="mixtape-card" style="--tape-color: var(--gold);">
+          <svg class="mixtape-icon" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><path d="M10 12h4"/></svg>
+          <div class="mixtape-name">late night driving</div>
+          <div class="mixtape-meta">24 tracks · you made this</div>
+          <div class="mixtape-phrase">"for the hours between midnight and meaning"</div>
+        </div>
+        <div class="mixtape-card" style="--tape-color: var(--lilac);">
+          <svg class="mixtape-icon" viewBox="0 0 24 24" fill="none" stroke="var(--lilac)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><path d="M10 12h4"/></svg>
+          <div class="mixtape-name">overheard at 2am</div>
+          <div class="mixtape-meta">12 tracks · from the herd</div>
+          <div class="mixtape-phrase">"things people passed on that landed"</div>
+        </div>
+        <div class="mixtape-card" style="--tape-color: var(--teal);">
+          <svg class="mixtape-icon" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><path d="M10 12h4"/></svg>
+          <div class="mixtape-name">restless sunday</div>
+          <div class="mixtape-meta">31 tracks · you made this</div>
+          <div class="mixtape-phrase">"the specific texture of almost but not"</div>
+        </div>
+        <div class="mixtape-card" style="--tape-color: var(--coral);">
+          <svg class="mixtape-icon" viewBox="0 0 24 24" fill="none" stroke="var(--coral)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><path d="M10 12h4"/></svg>
+          <div class="mixtape-name">the hollow ones</div>
+          <div class="mixtape-meta">9 tracks · you made this</div>
+          <div class="mixtape-phrase">"songs for when language fails"</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- end shelf view -->
+
+</div>
+```
+
+  </main>
+
+  <!-- ── PLAYER ── -->
+
+  <footer class="player">
+    <div class="player-left">
+      <div class="now-art playing" id="nowArt"></div>
+      <div class="now-info">
+        <div class="now-title" id="nowTitle">Float On</div>
+        <div class="now-artist" id="nowArtist">Modest Mouse</div>
+        <div class="now-felt-wrap">
+          <div class="now-felt yours" id="nowFelt">"sounds like the last hour before everything changed"</div>
+        </div>
+      </div>
+      <button class="heart-btn active" onclick="this.classList.toggle('active')">
+        <svg width="18" height="18" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </button>
+    </div>
+
+```
+<div class="player-center">
+  <div class="player-controls">
+    <button class="icon-btn" title="shuffle" onclick="toggleShuffle(this)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+    </button>
+    <button class="icon-btn" onclick="prevTrack()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+    </button>
+    <button class="play-btn" id="playBtn" onclick="togglePlay()">
+      <svg id="playIcon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+      <svg id="pauseIcon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="display:none"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+    </button>
+    <button class="icon-btn" onclick="nextTrack()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+    </button>
+    <button class="icon-btn" title="repeat" onclick="toggleRepeat(this)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+    </button>
+  </div>
+  <div class="progress-wrap">
+    <span class="time" id="currentTime">2:06</span>
+    <div class="progress-bar" onclick="seekTrack(event)">
+      <div class="progress-fill" id="progressFill"></div>
+      <div class="progress-thumb"></div>
+    </div>
+    <span class="time right" id="totalTime">5:37</span>
+  </div>
+</div>
+
+<div class="player-right">
+  <div class="vol-wrap">
+    <button class="icon-btn" style="padding:2px;" onclick="toggleMute(this)">
+      <svg id="volIconHigh" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+      <svg id="volIconLow" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+      <svg id="volIconOff" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+    </button>
+    <div class="vol-bar" onclick="setVolume(event)">
+      <div class="vol-fill" id="volFill"></div>
+    </div>
+  </div>
+  <button class="icon-btn queue-icon" title="queue">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    <span style="font-size:10px; font-family:'DM Mono',monospace; letter-spacing:1px; color:var(--muted);">queue</span>
+  </button>
+</div>
+```
+
+  </footer>
+
+</div>
+
+<script>
+  let isPlaying = true;
+  let progress = 37;
+
+  // Progress ticker
+  setInterval(() => {
+    if (isPlaying) {
+      progress += 0.02;
+      if (progress > 100) progress = 0;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.querySelector('.progress-thumb').style.right = (100 - progress - 0.5) + '%';
+    }
+  }, 200);
+
+  function togglePlay() {
+    isPlaying = !isPlaying;
+    document.getElementById('playIcon').style.display  = isPlaying ? 'none' : 'block';
+    document.getElementById('pauseIcon').style.display = isPlaying ? 'block' : 'none';
+    document.getElementById('nowArt').classList.toggle('playing', isPlaying);
+    document.querySelectorAll('.playing-bar span').forEach(s => {
+      s.style.animationPlayState = isPlaying ? 'running' : 'paused';
+    });
+  }
+  // Start in playing state — show pause icon initially
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('playIcon').style.display  = 'none';
+    document.getElementById('pauseIcon').style.display = 'block';
+  });
+
+  function seekTrack(e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    progress = ((e.clientX - rect.left) / rect.width) * 100;
+    document.getElementById('progressFill').style.width = progress + '%';
+  }
+
+  let currentVol = 70;
+  let isMuted = false;
+
+  function updateVolIcon() {
+    document.getElementById('volIconHigh').style.display = (!isMuted && currentVol >= 50) ? 'block' : 'none';
+    document.getElementById('volIconLow').style.display  = (!isMuted && currentVol < 50)  ? 'block' : 'none';
+    document.getElementById('volIconOff').style.display  = isMuted                         ? 'block' : 'none';
+  }
+
+  function setVolume(e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    currentVol = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    document.getElementById('volFill').style.width = currentVol + '%';
+    if (currentVol === 0) { isMuted = true; } else { isMuted = false; }
+    const btn = e.currentTarget.previousElementSibling;
+    btn.classList.toggle('active', isMuted);
+    updateVolIcon();
+  }
+
+  function toggleMute(btn) {
+    isMuted = !isMuted;
+    btn.classList.toggle('active', isMuted);
+    document.getElementById('volFill').style.width = isMuted ? '0%' : currentVol + '%';
+    if (isMuted) {
+      updateVolIcon();
+    } else {
+      setTimeout(updateVolIcon, 200);
+    }
+  }
+
+  function toggleShuffle(btn) { btn.style.color = ''; btn.classList.toggle('active'); }
+  function toggleRepeat(btn)  { btn.style.color = ''; btn.classList.toggle('active'); }
+
+  const tracks = [
+    {
+      title: 'Float On', artist: 'Modest Mouse',
+      gradient: 'linear-gradient(135deg,#1f2a3d,#2a1f3d)',
+      felts: [
+        { text: '"sounds like deciding things will probably be alright"', mine: true },
+        { text: '"the specific relief of lowering your expectations in a good way"', mine: false },
+        { text: '"driving nowhere in particular and feeling fine about it"', mine: false },
+        { text: '"optimism that earned itself"', mine: false },
+      ]
+    },
+    {
+      title: 'Missed the Boat', artist: 'Modest Mouse',
+      gradient: 'linear-gradient(135deg,#1f2a1f,#2a3a1f)',
+      felts: [
+        { text: '"realizing something too late but making peace with it"', mine: true },
+        { text: '"the specific sadness of almost"', mine: false },
+        { text: '"i played this until the almost stopped stinging"', mine: false },
+      ]
+    },
+    {
+      title: 'Taking up Space', artist: 'Mustard Service',
+      gradient: 'linear-gradient(135deg,#1a2f3d,#0f1f2f)',
+      felts: [
+        { text: '"sitting with someone in the quiet before something changes"', mine: true },
+        { text: '"the tenderness of being known by someone"', mine: false },
+        { text: '"love that doesn\'t need to announce itself"', mine: false },
+      ]
+    },
+    {
+      title: 'Please Please Please', artist: 'Sabrina Carpenter',
+      gradient: 'linear-gradient(135deg,#3d1f2a,#2a1520)',
+      felts: [
+        { text: '"wanting someone to just get it right this time"', mine: true },
+        { text: '"hope and irritation at exactly the same time"', mine: false },
+        { text: '"being charmed by someone you know you shouldn\'t be"', mine: false },
+      ]
+    },
+    {
+      title: 'Espresso', artist: 'Sabrina Carpenter',
+      gradient: 'linear-gradient(135deg,#2a1f1a,#3d2a1f)',
+      felts: [
+        { text: '"confident and a little dangerous and fully aware of it"', mine: true },
+        { text: '"the walk you do when you know you look good"', mine: false },
+        { text: '"leaving first on purpose"', mine: false },
+      ]
+    },
+  ];
+  let currentTrack = 0;
+  let feltIndex = 0;
+  let feltTimer = null;
+
+  function startFeltCycle(trackIdx) {
+    clearInterval(feltTimer);
+    feltIndex = 0;
+    renderFelt(trackIdx, feltIndex, false);
+    feltTimer = setInterval(() => {
+      feltIndex = (feltIndex + 1) % tracks[trackIdx].felts.length;
+      cycleFelt(trackIdx, feltIndex);
+    }, 6500);
+  }
+
+  function renderFelt(trackIdx, idx, animate) {
+    const wrap = document.querySelector('.now-felt-wrap');
+    const existing = document.getElementById('nowFelt');
+    const felt = tracks[trackIdx].felts[idx];
+    if (existing) existing.remove();
+    const el = document.createElement('div');
+    el.className = 'now-felt ' + (felt.mine ? 'yours' : 'theirs');
+    if (animate) el.classList.add('entering');
+    el.id = 'nowFelt';
+    el.textContent = felt.text;
+    wrap.appendChild(el);
+    if (animate) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => { el.classList.remove('entering'); });
+      });
+    }
+  }
+
+  function cycleFelt(trackIdx, idx) {
+    const existing = document.getElementById('nowFelt');
+    if (existing) {
+      existing.classList.add('leaving');
+      setTimeout(() => renderFelt(trackIdx, idx, true), 500);
+    } else {
+      renderFelt(trackIdx, idx, true);
+    }
+  }
+
+  function playTrack(row) {
+    document.querySelectorAll('.track-row').forEach(r => r.classList.remove('playing'));
+    row.classList.add('playing');
+    const idx = Array.from(document.querySelectorAll('.track-row')).indexOf(row);
+    if (idx >= 0 && idx < tracks.length) { currentTrack = idx; updateNowPlaying(); }
+    isPlaying = true;
+    document.getElementById('playIcon').style.display  = 'none';
+    document.getElementById('pauseIcon').style.display = 'block';
+    document.getElementById('nowArt').classList.add('playing');
+    progress = 0;
+  }
+
+  function playTrackFrom(idx) {
+    currentTrack = idx;
+    updateNowPlaying();
+    isPlaying = true;
+    document.getElementById('playIcon').style.display  = 'none';
+    document.getElementById('pauseIcon').style.display = 'block';
+    document.getElementById('nowArt').classList.add('playing');
+    progress = 0;
+  }
+
+  function nextTrack() { currentTrack = (currentTrack + 1) % tracks.length; updateNowPlaying(); progress = 0; }
+  function prevTrack() { currentTrack = (currentTrack - 1 + tracks.length) % tracks.length; updateNowPlaying(); progress = 0; }
+
+  function updateNowPlaying() {
+    const t = tracks[currentTrack];
+    document.getElementById('nowTitle').textContent  = t.title;
+    document.getElementById('nowArtist').textContent = t.artist;
+    document.getElementById('nowArt').style.background = t.gradient;
+    document.querySelectorAll('.track-row').forEach((r, i) => r.classList.toggle('playing', i === currentTrack));
+    startFeltCycle(currentTrack);
+  }
+
+  // Kick off felt cycle on load
+  startFeltCycle(0);
+
+  function selectMood(tag) {
+    document.querySelectorAll('.mood-tag').forEach(t => t.classList.remove('active'));
+    tag.classList.add('active');
+  }
+
+  function shuffleMoods() {
+    const cloud = document.getElementById('moodCloud');
+    const tags  = Array.from(cloud.children);
+    tags.sort(() => Math.random() - 0.5);
+    tags.forEach(t => cloud.appendChild(t));
+  }
+
+  function toggleFelt(btn) {
+    btn.classList.toggle('active');
+    const num = parseInt(btn.textContent.match(/\d+/)[0]);
+    btn.textContent = '♥ ' + (btn.classList.contains('active') ? num + 1 : num - 1) + ' felt this';
+  }
+
+  function addToShelf(btn) { btn.textContent = '✓ shelved'; btn.style.color = 'var(--green)'; }
+  function passToBranch(btn) { btn.textContent = '↗ passed'; btn.style.color = 'var(--teal)'; }
+  function followDrift(card) {
+    card.style.borderColor = 'rgba(232,196,122,0.4)';
+    card.style.background  = 'rgba(232,196,122,0.06)';
+  }
+
+  // View switcher
+  const views = ['pasture', 'shelf'];
+  function switchView(view, el) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    if (el) el.classList.add('active');
+    // Show/hide views
+    document.getElementById('view-pasture').style.display = view === 'pasture' ? '' : 'none';
+    const shelfEl = document.getElementById('view-shelf');
+    if (shelfEl) shelfEl.style.display = view === 'shelf' ? '' : 'none';
+  }
+
+  // Shelf tab switcher
+  function switchShelfTab(tab, el) {
+    document.querySelectorAll('.shelf-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    el.classList.add(tab);
+    document.getElementById('shelf-albums').style.display   = tab === 'albums'   ? '' : 'none';
+    document.getElementById('shelf-songs').style.display    = tab === 'songs'    ? '' : 'none';
+    document.getElementById('shelf-mixtapes').style.display = tab === 'mixtapes' ? '' : 'none';
+  }
+</script>
+
+</body>
+</html>
